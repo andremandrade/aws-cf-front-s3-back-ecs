@@ -38,7 +38,7 @@ Resources:
                     - "arn:aws:iam::380095960694:user/andre"
                 Action: 
                     - "ecr:*"
-                Resource: "*"
+                Resource: "arn:aws:ecr:us-west-2:*"
 Outputs:
   WebsiteURL:
     Value: !GetAtt 
