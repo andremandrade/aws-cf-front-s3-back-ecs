@@ -20,5 +20,6 @@ jobs:
       - name: Build angular project
         run: |
           cd web-frontend
+          npm install
           ng build
 
