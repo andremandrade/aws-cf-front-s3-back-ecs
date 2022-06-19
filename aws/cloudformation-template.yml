@@ -27,7 +27,7 @@ Resources:
   CF01APIImageRepository: 
     Type: AWS::ECR::Repository
     Properties: 
-        RepositoryName: "cf01-api-repository"
+        RepositoryName: "cf01-api-service"
         RepositoryPolicyText: 
             Version: "2012-10-17"
             Statement: 
