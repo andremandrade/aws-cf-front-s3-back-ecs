@@ -31,8 +31,7 @@ Resources:
     RepositoryPolicyText: 
       Version: "2012-10-17"
       Statement: 
-        - 
-          Sid: AllowPushPull
+        - Sid: AllowPushPull
           Effect: Allow
           Principal: 
             AWS: 
