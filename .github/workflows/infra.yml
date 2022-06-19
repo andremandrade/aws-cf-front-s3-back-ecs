@@ -23,7 +23,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::380095960694:role/GithubActionsAssumeRole
-          role-session-name: githubactions-cf01
+          role-session-name: githubactions-cf01-infra-update
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Update infra by cloudformation
