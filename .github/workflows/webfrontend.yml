@@ -22,4 +22,11 @@ jobs:
           cd web-frontend
           npm install
           ng build
+      - name: Zip dist folder
+        run: tar -vzcf web-frontend.zip dist/web-frontend/
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Zipped dist folder
+          path: web-frontend.zip
 
