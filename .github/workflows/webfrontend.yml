@@ -33,6 +33,7 @@ jobs:
           path: web-frontend/web-frontend.zip
 
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       id-token: write
