@@ -48,8 +48,8 @@ jobs:
       
       - name: Unzip dist folder
         run: |
-          ll
-        # tar -vxzf webfrontend-dist.zip
+          ls
+          tar -vxzf web-frontend.zip
 
       - name: Configure AWS credentials from Test account
         uses: aws-actions/configure-aws-credentials@v1
