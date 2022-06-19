@@ -37,13 +37,8 @@ Resources:
                     AWS: 
                     - "arn:aws:iam::380095960694:user/andre"
                 Action: 
-                    - "ecr:GetDownloadUrlForLayer"
-                    - "ecr:BatchGetImage"
-                    - "ecr:BatchCheckLayerAvailability"
-                    - "ecr:PutImage"
-                    - "ecr:InitiateLayerUpload"
-                    - "ecr:UploadLayerPart"
-                    - "ecr:CompleteLayerUpload"
+                    - "ecr:*"
+                Resource: "*"
 Outputs:
   WebsiteURL:
     Value: !GetAtt 
