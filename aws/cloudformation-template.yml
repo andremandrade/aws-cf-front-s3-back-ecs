@@ -24,6 +24,7 @@ Resources:
                 - !Ref WebSiteBucket
                 - /*
       Bucket: !Ref WebSiteBucket
+ 
   CF01APIImageRepository: 
     Type: AWS::ECR::Repository
     Properties: 
@@ -45,6 +46,19 @@ Resources:
                     - "ecr:UploadLayerPart"
                     - "ecr:CompleteLayerUpload"
                     - "ecr:GetAuthorizationToken"
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: CF01ECSCluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 1
+
 Outputs:
   WebsiteURL:
     Value: !GetAtt 
