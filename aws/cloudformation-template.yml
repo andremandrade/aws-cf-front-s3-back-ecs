@@ -64,11 +64,10 @@ Resources:
     Properties: 
       ContainerDefinitions: 
         - 
-          Name: 
-            Ref: "CF01API"
+          Name: "CF01API"
           MountPoints: 
             - 
-              SourceVolume: "CF01API"
+              SourceVolume: "CF01APIVOL"
               ContainerPath: "/service"
           Image: "380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api-service:latest"
           Cpu: 256
