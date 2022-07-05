@@ -46,7 +46,7 @@ Resources:
                     - "ecr:UploadLayerPart"
                     - "ecr:CompleteLayerUpload"
                     - "ecr:GetAuthorizationToken"
-  ECSCluster:
+  CF01ECSCluster:
     Type: 'AWS::ECS::Cluster'
     Properties:
       ClusterName: CF01ECSCluster
@@ -58,6 +58,35 @@ Resources:
           Weight: 1
         - CapacityProvider: FARGATE_SPOT
           Weight: 1
+
+  CF01TaskDefinitionAPI: 
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      ContainerDefinitions: 
+        - 
+          Name: 
+            Ref: "CF01API"
+          MountPoints: 
+            - 
+              SourceVolume: "CF01API"
+              ContainerPath: "/service"
+          Image: "380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api-service:latest"
+          Cpu: 256
+          PortMappings: 
+            - 
+              ContainerPort: 8080
+              HostPort: 8080
+          Memory: 512
+          Essential: true
+
+  CF01ECSServiceAPI: 
+    Type: AWS::ECS::Service
+    Properties: 
+      Cluster: 
+        Ref: "CF01ECSCluster"
+      DesiredCount: 1
+      TaskDefinition: 
+        Ref: "CF01TaskDefinitionAPI"
 
 Outputs:
   WebsiteURL:
