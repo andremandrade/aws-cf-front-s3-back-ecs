@@ -60,5 +60,5 @@ jobs:
       
       - name: Deploy static webfront in S3
         run: |
-          S3_BUCKET_NAME=$(aws cloudformation describe-stack-resource --stack-name aws-cloudformation01-test --logical-resource-id WebSiteBucket --query StackResourceDetail.PhysicalResourceId --output text)
+          S3_BUCKET_NAME=$(aws cloudformation describe-stack-resource --stack-name cf01 --logical-resource-id WebSiteBucket --query StackResourceDetail.PhysicalResourceId --output text)
           aws s3 sync ./dist/web-frontend/ s3://$S3_BUCKET_NAME
