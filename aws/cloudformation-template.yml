@@ -25,7 +25,11 @@ Resources:
                 - !Ref WebSiteBucket
                 - /*
       Bucket: !Ref WebSiteBucket
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+ 
+>>>>>>> infra
   CF01APIImageRepository: 
     Type: AWS::ECR::Repository
     Properties: 
@@ -47,6 +51,7 @@ Resources:
                     - "ecr:UploadLayerPart"
                     - "ecr:CompleteLayerUpload"
                     - "ecr:GetAuthorizationToken"
+<<<<<<< HEAD
 =======
  
   # CF01APIImageRepository: 
@@ -70,10 +75,13 @@ Resources:
   #                   - "ecr:UploadLayerPart"
   #                   - "ecr:CompleteLayerUpload"
   #                   - "ecr:GetAuthorizationToken"
+=======
+>>>>>>> infra
   CF01ECSCluster:
     Type: 'AWS::ECS::Cluster'
     Properties:
       ClusterName: CF01ECSCluster
+<<<<<<< HEAD
 
   CF01TaskDefAPI: 
     Type: AWS::ECS::TaskDefinition
@@ -91,21 +99,52 @@ Resources:
           Image: "380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api:latest"
           Cpu: 512
           Memory: 1024
+=======
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 1
+
+  CF01TaskDefinitionAPI: 
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      ContainerDefinitions: 
+        - 
+          Name: "CF01API"
+          MountPoints: 
+            - 
+              SourceVolume: "CF01APIVOL"
+              ContainerPath: "/service"
+          Image: "380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api-service:latest"
+          Cpu: 256
+>>>>>>> infra
           PortMappings: 
             - 
               ContainerPort: 8080
               HostPort: 8080
+<<<<<<< HEAD
+=======
+          Memory: 512
+>>>>>>> infra
           Essential: true
 
   CF01ECSServiceAPI: 
     Type: AWS::ECS::Service
     Properties: 
+<<<<<<< HEAD
       ServiceName: CF01ECSServiceAPI
       LaunchType: FARGATE
+=======
+>>>>>>> infra
       Cluster: 
         Ref: "CF01ECSCluster"
       DesiredCount: 1
       TaskDefinition: 
+<<<<<<< HEAD
         Ref: "CF01TaskDefAPI"
       NetworkConfiguration:
         AwsvpcConfiguration: 
@@ -117,6 +156,10 @@ Resources:
               - subnet-01599f7898409dfc3
 
 >>>>>>> Stashed changes
+=======
+        Ref: "CF01TaskDefinitionAPI"
+
+>>>>>>> infra
 Outputs:
   WebsiteURL:
     Value: !GetAtt 
