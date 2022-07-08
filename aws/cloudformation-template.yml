@@ -1,23 +1,8 @@
 Parameters:
-  EcsAmiId:
-    Type: String
-    Description: ECS AMI Id
-  EcsInstanceType:
-    Type: String
-    Description: ECS EC2 instance type
-    Default: t2.micro
-    ConstraintDescription: must be a valid EC2 instance type.
   KeyName:
     Type: String
     Description: Optional - Name of an existing EC2 KeyPair to enable SSH access to the ECS instances
     Default: ''
-  AsgMaxSize:
-    Type: Number
-    Description: Maximum size and initial Desired Capacity of ECS Auto Scaling Group
-    Default: '1'
-  IamRoleInstanceProfile:
-    Type: String
-    Description: Name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance
   EcsClusterName:
     Type: String
     Description: ECS Cluster Name
@@ -26,14 +11,6 @@ Parameters:
     Type: String
     Description: Optional - Security Group port to open on ECS instances - defaults to port 80
     Default: '80'
-  ElbPort:
-    Type: String
-    Description: Optional - Security Group port to open on ELB - port 80 will be open by default
-    Default: '80'
-  ElbHealthCheckTarget:
-    Type: String
-    Description: Optional - Health Check Target for ELB - defaults to HTTP:80/
-    Default: HTTP:80/
   TargetGroupName:
     Type: String
     Description: The target group name
@@ -208,119 +185,7 @@ Resources:
         -
           Key: 'Description'
           Value: !Join [' ', ['Created for ECS cluster', !Ref 'EcsClusterName']]
-  AlbSecurityGroup:
-    Condition: CreateELB
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: ELB Allowed Ports
-      VpcId: !Ref 'Vpc'
-      SecurityGroupIngress:
-        - IpProtocol: 'tcp'
-          FromPort: !Ref 'ElbPort'
-          ToPort: !Ref 'ElbPort'
-          CidrIp: !Ref 'SourceCidr'
-      Tags:
-        -
-          Key: 'Name'
-          Value: !Join [' ', ['ECS', !Ref 'EcsClusterName', '-', 'ALB SecurityGroup']]
-        -
-          Key: 'Description'
-          Value: !Join [' ', ['Created for ECS cluster', !Ref 'EcsClusterName']]
-  DefaultTargetGroup:
-    Condition: CreateELB
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      VpcId: !Ref 'Vpc'
-      Port: !Ref 'ElbPort'
-      TargetType: !Ref 'TargetType'
-      Protocol: HTTP
-      Tags:
-        -
-          Key: 'Name'
-          Value: !Join [' ', ['ECS', !Ref 'EcsClusterName', '-', 'TargetGroup']]
-        -
-          Key: 'Description'
-          Value: !Join [' ', ['Created for ECS cluster', !Ref 'EcsClusterName']]
-  EcsElasticLoadBalancer:
-    Condition: CreateELB
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      SecurityGroups:
-        - !Ref 'AlbSecurityGroup'
-      Subnets:
-        - !Ref 'PublicSubnetAz1'
-        - !Ref 'PublicSubnetAz2'
-      Scheme: internet-facing
-      Tags:
-        -
-          Key: 'Name'
-          Value: !Join [' ', ['ECS', !Ref 'EcsClusterName', '-', 'ALB']]
-        -
-          Key: 'Description'
-          Value: !Join [' ', ['Created for ECS cluster', !Ref 'EcsClusterName']]
-  LoadBalancerListener:
-    Condition: CreateELB
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalancerArn: !Ref 'EcsElasticLoadBalancer'
-      Port: !Ref 'ElbPort'
-      Protocol: HTTP
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref 'DefaultTargetGroup'
-  EcsInstanceLc:
-    Condition: LaunchInstances
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Properties:
-      ImageId: !Ref 'EcsAmiId'
-      InstanceType: !Ref 'EcsInstanceType'
-      AssociatePublicIpAddress: true
-      IamInstanceProfile: !Ref 'IamRoleInstanceProfile'
-      KeyName: !If [CreateEC2LCWithKeyPair, !Ref 'KeyName', !Ref 'AWS::NoValue']
-      SecurityGroups:
-        - !Ref 'EcsSecurityGroup'
-      UserData: !If
-        - SetEndpointToECSAgent
-        - !Base64
-          'Fn::Join':
-            - ''
-            - - |
-                #!/bin/bash
-              - echo ECS_CLUSTER=
-              - !Ref EcsClusterName
-              - ' >> /etc/ecs/ecs.config'
-              - |-
 
-                echo ECS_BACKEND_HOST=
-              - !Ref EcsEndpoint
-              - ' >> /etc/ecs/ecs.config'
-        - !Base64
-          'Fn::Join':
-            - ''
-            - - |
-                #!/bin/bash
-              - echo ECS_CLUSTER=
-              - !Ref EcsClusterName
-              - ' >> /etc/ecs/ecs.config'
-  EcsInstanceAsg:
-    Condition: LaunchInstances
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      VPCZoneIdentifier:
-        - !Join [',', [!Ref 'PublicSubnetAz1', !Ref 'PublicSubnetAz2']]
-      LaunchConfigurationName: !Ref 'EcsInstanceLc'
-      MinSize: '0'
-      MaxSize: !Ref 'AsgMaxSize'
-      DesiredCapacity: !Ref 'AsgMaxSize'
-      Tags:
-        -
-          Key: 'Name'
-          Value: !Join [' ', ['ECS', !Ref 'EcsClusterName', '-', 'EC2 Instance']]
-          PropagateAtLaunch: true
-        -
-          Key: 'Description'
-          Value: !Join [' ', ['Created for ECS cluster', !Ref 'EcsClusterName']]
-          PropagateAtLaunch: true
   WebSiteBucket:
     Type: AWS::S3::Bucket
     Properties:
