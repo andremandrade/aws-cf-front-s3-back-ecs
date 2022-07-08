@@ -171,7 +171,6 @@ Resources:
             IpProtocol: 'tcp'
             FromPort: '1'
             ToPort: '65535'
-            SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
         -
           -
             IpProtocol: 'tcp'
