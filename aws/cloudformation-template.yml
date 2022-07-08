@@ -10,7 +10,7 @@ Parameters:
   EcsPort:
     Type: String
     Description: Optional - Security Group port to open on ECS instances - defaults to port 80
-    Default: '80'
+    Default: '8080'
   TargetGroupName:
     Type: String
     Description: The target group name
