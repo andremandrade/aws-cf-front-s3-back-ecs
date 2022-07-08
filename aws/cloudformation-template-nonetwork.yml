@@ -1,0 +1,114 @@
+
+Resources:
+  WebSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Retain
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref WebSiteBucket
+                - /*
+      Bucket: !Ref WebSiteBucket
+ 
+  # CF01APIImageRepository: 
+  #   Type: AWS::ECR::Repository
+  #   Properties: 
+  #       RepositoryName: "cf01-api"
+  #       RepositoryPolicyText: 
+  #           Version: "2012-10-17"
+  #           Statement: 
+  #             - Sid: AllowPushPull
+  #               Effect: Allow
+  #               Principal: 
+  #                   AWS: 
+  #                   - "arn:aws:iam::380095960694:user/andre"
+  #               Action: 
+  #                   - "ecr:GetDownloadUrlForLayer"
+  #                   - "ecr:BatchGetImage"
+  #                   - "ecr:BatchCheckLayerAvailability"
+  #                   - "ecr:PutImage"
+  #                   - "ecr:InitiateLayerUpload"
+  #                   - "ecr:UploadLayerPart"
+  #                   - "ecr:CompleteLayerUpload"
+  #                   - "ecr:GetAuthorizationToken"
+  CF01ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: CF01ECSCluster
+
+  CF01TaskDefAPI: 
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities: 
+        - FARGATE
+        - EC2
+      Cpu: 1024
+      Memory: 2048
+      ExecutionRoleArn: arn:aws:iam::380095960694:role/ecsTaskExecutionRole
+      ContainerDefinitions: 
+        - 
+          Name: "CF01API"
+          Image: "380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api:latest"
+          Cpu: 512
+          Memory: 1024
+          PortMappings: 
+            - 
+              ContainerPort: 8080
+              HostPort: 8080
+          Essential: true
+
+  CF01ECSServiceAPI: 
+    Type: AWS::ECS::Service
+    Properties: 
+      ServiceName: CF01ECSServiceAPI
+      LaunchType: FARGATE
+      Cluster: 
+        Ref: "CF01ECSCluster"
+      DesiredCount: 0
+      TaskDefinition: 
+        Ref: "CF01TaskDefAPI"
+      NetworkConfiguration:
+        AwsvpcConfiguration: 
+            AssignPublicIp: "ENABLED"
+            SecurityGroups: 
+              - sg-0dddc56ca27831c5a
+            Subnets: 
+              - subnet-007ca7f4de06434e8
+              - subnet-01599f7898409dfc3
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt 
+      - WebSiteBucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  S3BucketSecureURL:
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !GetAtt 
+          - WebSiteBucket
+          - DomainName
+    Description: Name of S3 bucket to hold website content
+  # DockerRegistryURL:
+  #   Value: !GetAtt
+  #     - CF01APIImageRepository
+  #     - RepositoryUri
+  
