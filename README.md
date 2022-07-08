@@ -30,18 +30,36 @@ See the diagram os the ``/aws/cloudformation-template.yml``:
 
 ![cf-template](./img/template1-designer.png)
 
-### API Service (backend) workflow ( see ``/.github/workflows/apiservice.yml``)
+Besides the network components created to give access to the ECS Task, this stack is composed by:
+- 1 S3 Bucket (`WebSiteBucket`) - used to store and serve the frontend (Angular app) 
+- 1 ECR Repository (`CF01APIImageRepository`) - used as the Docker registry to store the API Service versions as docker images
+- 1 ECS Cluster (`CF01ECSCluster`) - Mandatory to deploy Fargate containers
+- 1 ECS Service (`CF01ECSServiceAPI`) - Belongs to the ECS cluster, is used to run the tasks
+
+### Web Frontend workflow ( see ``/.github/workflows/webfrontend.yml``)
 
 This workflow has two jobs:
 * ``build``:
-    * build the Angular application (``ng build``)
-    * zip the ``dist`` folder and store as artifact 
+    * build the Angular Application (`ng build`)
+    * zip the `dist` folder and updaload as artifact
 
 * ``deploy``:
     * dowload and unzip the zipped ``dist`` (stored on the ``build`` step)
     * dinamically find the bucket ID using AWS CLI (e.g.: ``aws cloudformation describe-stack-resource --stack-name cf01 --logical-resource-id WebSiteBucket --query StackResourceDetail.PhysicalResourceId --output text``)
     * Sync ``dist`` content with de S3 bucket
 
-### Web Frontend workflow ( see ``/.github/workflows/webfrontend.yml``)
+### API Service (backend) workflow ( see ``/.github/workflows/apiservice.yml``)
 
-This workflow has two jobs:
+It's important to remember that the [AWS ECS Best Practices Guide](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/bestpracticesguide.pdf) recommends to update Fargate Tasks in the following way:
+
+![cf-template](./img/aws-ecs-task-update.png)
+
+Following their recommendations, this workflow has two jobs:
+* ``build``:
+    * build the Spring Application as a Docker image using the commit SHA as tag
+    * push the app Docker image in the ECR repository
+
+* ``deploy``:
+    * register a new Task Definition with the last app image
+    * find the new Task Definition ARN (using AWS CLI)
+    * update the ECS Service with the new Task Definition 
