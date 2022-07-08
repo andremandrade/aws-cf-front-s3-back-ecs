@@ -27,4 +27,4 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Update infra by cloudformation
-        run: aws cloudformation update-stack --stack-name aws-cloudformation01-test --template-body file://`pwd`/aws/cloudformation-template.yml
+        run: aws cloudformation update-stack --stack-name cf-01 --template-body file://`pwd`/aws/cloudformation-template.yml
