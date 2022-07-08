@@ -71,7 +71,4 @@ jobs:
           run: |
             aws ecs register-task-definition --family $ECS_TASKDEF_FAMILY --execution-role-arn $ECS_TASKDEF_EXEC_ROLE --network-mode awsvpc --container-definitions "{\"name\": \"$ECS_TASKDEF_CONTAINER_NAME\",\"image\":\"$REGISTRY/$REPOSITORY:$IMAGE_TAG\",\"cpu\": 512,\"memory\":1024,\"portMappings\":[{\"containerPort\": 8080}],\"essential\": true}" --cpu 1024 --memory 2048
             TASK_DEF_ARN=$(aws ecs list-task-definitions --family-prefix CF01ECSServiceAPI --sort DESC --query taskDefinitionArns[0] --output text)
-            aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --task-definition $TASK_DEF_ARN
-
-          
-
+            aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --task-definition $TASK_DEF_ARN --desired-count 1
