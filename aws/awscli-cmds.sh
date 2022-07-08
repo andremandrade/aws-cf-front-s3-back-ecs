@@ -20,5 +20,3 @@ docker push 380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api-service:latest
 aws ecs register-task-definition --family CF01ECSServiceAPI --execution-role-arn arn:aws:iam::380095960694:role/ecsTaskExecutionRole --network-mode awsvpc --container-definitions "{\"name\": \"CF01API\",\"image\":\"380095960694.dkr.ecr.us-west-2.amazonaws.com/cf01-api:21c109e\",\"cpu\": 512,\"memory\":1024,\"portMappings\":[{\"containerPort\": 8080}],\"essential\": true}" --cpu 1024 --memory 2048
 
 aws ecs update-service --cluster CF01ECSCluster --service CF01ECSServiceAPI --task-definition CF01ECSServiceAPI:2
-
-aws ecs list-task-definitions --family-prefix CF01ECSServiceAPI --sort DESC --query taskDefinitionArns[0] --output text

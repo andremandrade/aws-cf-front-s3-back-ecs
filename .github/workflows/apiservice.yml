@@ -8,26 +8,70 @@ on:
 
 env:
   AWS_REGION: us-west-2
+  ECS_TASKDEF_FAMILY: CF01ECSServiceAPI
+  ECS_TASKDEF_CONTAINER_NAME: CF01API
+  ECS_TASKDEF_EXEC_ROLE: arn:aws:iam::380095960694:role/ecsTaskExecutionRole
+  REPOSITORY: cf01-api
+  IMAGE_TAG: ${{ github.sha }}
+  ECS_CLUSTER_NAME: CF01ECSCluster
+  ECS_SERVICE_NAME: CF01ECSServiceAPI
 
 jobs:
   
   build:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    permissions:
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::380095960694:role/GithubActionsAssumeRole
+          role-session-name: githubactions-cf01-api-build
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: cf01-api
-          IMAGE_TAG: ${{ github.sha }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}          
         run: |
           cd api-service
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  deploy:
+      runs-on: ubuntu-latest
+      needs: build
+      permissions:
+        id-token: write
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            role-to-assume: arn:aws:iam::380095960694:role/GithubActionsAssumeRole
+            role-session-name: githubactions-cf01-api-build
+            aws-region: ${{ env.AWS_REGION }}
+        
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+
+        - name: Generate New Task Def and Update Service
+          env:
+            REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          run: |
+            aws ecs register-task-definition --family $ECS_TASKDEF_FAMILY --execution-role-arn $ECS_TASKDEF_EXEC_ROLE --network-mode awsvpc --container-definitions "{\"name\": \"$ECS_TASKDEF_CONTAINER_NAME\",\"image\":\"$REGISTRY/$REPOSITORY:$IMAGE_TAG\",\"cpu\": 512,\"memory\":1024,\"portMappings\":[{\"containerPort\": 8080}],\"essential\": true}" --cpu 1024 --memory 2048
+            TASK_DEF_ARN=$(aws ecs list-task-definitions --family-prefix CF01ECSServiceAPI --sort DESC --query taskDefinitionArns[0] --output text)
+            aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --task-definition $TASK_DEF_ARN
+
+          
 
